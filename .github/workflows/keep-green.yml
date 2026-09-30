@@ -31,9 +31,11 @@ jobs:
           git config user.name "${OWNER}"
           git config user.email "${ID}+${OWNER}@users.noreply.github.com"
 
+          # Her commit ayrı push ile gider: toplu push'ta takvim commit'leri saymayabiliyor.
           for i in $(seq 1 "${COUNT}"); do
             echo "$(date -u +%FT%TZ) #${i}" >> activity.log
             git add activity.log
             git commit -q -m "activity $(date -u +%F) #${i}"
+            git push -q
+            sleep 1
           done
-          git push
