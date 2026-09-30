@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       count:
-        description: "Bugün atılacak commit sayısı"
-        default: "20"
+        description: "Günlük hedef (o gün toplam commit sayısı)"
+        default: "45"
 
 permissions:
   contents: write
@@ -18,24 +18,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 300
 
-      - name: Commit'leri at
+      - name: Bugünün hedefine tamamla
         env:
           GH_TOKEN: ${{ github.token }}
-          COUNT: ${{ inputs.count || vars.COMMITS_PER_DAY || '20' }}
+          COUNT: ${{ inputs.count || vars.COMMITS_PER_DAY || '45' }}
         run: |
-          # Commit'ler hesabına sayılsın diye yazar e-postası hesabınla eşleşmeli.
-          # Herkese açık noreply adresi otomatik bulunur (ID+kullanici@users.noreply.github.com).
+          # GitHub takvim renkleri, en yoğun gününe göre hesaplanır. Her gün aynı toplam
+          # sayıda katkı (hedef) olursa hepsi en açık yeşil tonda kalır. Tekrar çalıştırma
+          # hedefi aşmaz: bugün zaten atılan commit'ler düşülür, sadece eksik kadar atılır.
           OWNER="${GITHUB_REPOSITORY_OWNER}"
           ID=$(gh api "users/${OWNER}" --jq .id)
           git config user.name "${OWNER}"
           git config user.email "${ID}+${OWNER}@users.noreply.github.com"
 
+          TODAY=$(date -u +%F)
+          HAVE=$(git log --since="${TODAY}T00:00:00Z" --oneline | wc -l)
+          NEED=$((COUNT - HAVE))
+          echo "hedef=${COUNT} mevcut=${HAVE} atılacak=${NEED}"
+
           # Her commit ayrı push ile gider: toplu push'ta takvim commit'leri saymayabiliyor.
-          for i in $(seq 1 "${COUNT}"); do
+          for i in $(seq 1 "${NEED}"); do
             echo "$(date -u +%FT%TZ) #${i}" >> activity.log
             git add activity.log
-            git commit -q -m "activity $(date -u +%F) #${i}"
+            git commit -q -m "activity ${TODAY} #$((HAVE + i))"
             git push -q
             sleep 1
           done
