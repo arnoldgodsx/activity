@@ -1,0 +1,39 @@
+name: keep-green
+
+on:
+  schedule:
+    # Her gün 06:00 UTC = 09:00 Türkiye saati (GitHub cron'u birkaç dk gecikebilir)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "Bugün atılacak commit sayısı"
+        default: "20"
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Commit'leri at
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COUNT: ${{ inputs.count || vars.COMMITS_PER_DAY || '20' }}
+        run: |
+          # Commit'ler hesabına sayılsın diye yazar e-postası hesabınla eşleşmeli.
+          # Herkese açık noreply adresi otomatik bulunur (ID+kullanici@users.noreply.github.com).
+          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          ID=$(gh api "users/${OWNER}" --jq .id)
+          git config user.name "${OWNER}"
+          git config user.email "${ID}+${OWNER}@users.noreply.github.com"
+
+          for i in $(seq 1 "${COUNT}"); do
+            echo "$(date -u +%FT%TZ) #${i}" >> activity.log
+            git add activity.log
+            git commit -q -m "activity $(date -u +%F) #${i}"
+          done
+          git push
