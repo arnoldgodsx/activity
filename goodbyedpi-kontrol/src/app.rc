@@ -1,0 +1,35 @@
+#include <winver.h>
+#include "resource.h"
+
+1 24 "app.manifest"
+
+IDI_APP ICON "../build/app.ico"
+IDI_ON  ICON "../build/on.ico"
+IDI_OFF ICON "../build/off.ico"
+
+IDR_GDPI_EXE      RCDATA "../build/goodbyedpi.exe"
+IDR_WINDIVERT_DLL RCDATA "../build/WinDivert.dll"
+IDR_WINDIVERT_SYS RCDATA "../build/WinDivert64.sys"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "041F04B0"
+    BEGIN
+      VALUE "FileDescription", "GoodbyeDPI Kontrol"
+      VALUE "FileVersion", "1.0.0"
+      VALUE "ProductName", "GoodbyeDPI Kontrol"
+      VALUE "ProductVersion", "1.0.0 (GoodbyeDPI 0.2.3rc3-turkey)"
+      VALUE "OriginalFilename", "GoodbyeDPI-Kontrol.exe"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x041F, 1200
+  END
+END
